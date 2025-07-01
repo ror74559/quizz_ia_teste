@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Artes - Egito Antigo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .quiz-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .quiz-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .quiz-content {
+            padding: 40px;
+        }
+
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .question {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .option.correct {
+            border-color: #28a745;
+            background: #28a745;
+            color: white;
+            animation: correctAnswer 0.6s ease;
+        }
+
+        .option.incorrect {
+            border-color: #dc3545;
+            background: #dc3545;
+            color: white;
+            animation: incorrectAnswer 0.6s ease;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .results-container {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .results-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .percentage {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .recommendation {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .recommendation h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .recommendation p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes correctAnswer {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes incorrectAnswer {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .quiz-header h1 {
+                font-size: 2rem;
+            }
+            
+            .quiz-content {
+                padding: 20px;
+            }
+            
+            .question {
+                font-size: 1.2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1>🏺 Quiz de Artes</h1>
+            <p>Egito Antigo - 6º Ano</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="quiz-content" id="quizContent">
+            <!-- Perguntas serão inseridas aqui pelo JavaScript -->
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="final-score" id="finalScore">0/15</div>
+            <div class="percentage" id="percentage">0%</div>
+            <div class="recommendation" id="recommendation">
+                <!-- Recomendação será inserida aqui -->
+            </div>
+            <button class="btn restart-btn" onclick="restartQuiz()">🔄 Refazer Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Qual o período da História que a Antiguidade abrange?",
+                options: [
+                    "Entre 1000 a.C. e 500 d.C.",
+                    "Entre 4 mil a.C. e 476 d.C.",
+                    "Entre 2000 a.C. e 1000 d.C.",
+                    "Entre 500 a.C. e 100 d.C."
+                ],
+                answer: "Entre 4 mil a.C. e 476 d.C."
+            },
+            {
+                question: "Quais civilizações viveram épocas de auge na Antiguidade, além dos povos mesopotâmicos?",
+                options: [
+                    "Chineses, indianos e persas",
+                    "Egípcios, gregos e romanos",
+                    "Maias, incas e astecas",
+                    "Vikings, celtas e eslavos"
+                ],
+                answer: "Egípcios, gregos e romanos"
+            },
+            {
+                question: "Qual a principal característica da religião no Egito Antigo?",
+                options: [
+                    "Monoteísta, acreditando em um único deus.",
+                    "Ateísta, sem crença em deuses.",
+                    "Politeísta, acreditando em uma vasta gama de deuses.",
+                    "Animista, adorando apenas a natureza."
+                ],
+                answer: "Politeísta, acreditando em uma vasta gama de deuses."
+            },
+            {
+                question: "Como eram chamadas as produções artísticas relacionadas às tumbas e aos rituais funerários do Egito Antigo?",
+                options: [
+                    "Arte sacra",
+                    "Arte rupestre",
+                    "Arte funerária",
+                    "Arte abstrata"
+                ],
+                answer: "Arte funerária"
+            },
+            {
+                question: "Qual o nome das regras fixas que as pinturas egípcias obedeciam?",
+                options: [
+                    "Lei da Perspectiva",
+                    "Lei da Proporção Áurea",
+                    "Lei da Frontalidade",
+                    "Lei do Contraste"
+                ],
+                answer: "Lei da Frontalidade"
+            },
+            {
+                question: "Segundo a Lei da Frontalidade, como a cabeça de pessoas e divindades deveria ser representada?",
+                options: [
+                    "De frente",
+                    "De costas",
+                    "De perfil",
+                    "Inclinada"
+                ],
+                answer: "De perfil"
+            },
+            {
+                question: "Qual obra consistia em um grande rolo de papiro com fórmulas mágicas para a eternidade?",
+                options: [
+                    "O Livro dos Sonhos",
+                    "O Livro dos Mortos",
+                    "O Livro da Vida",
+                    "O Livro dos Deuses"
+                ],
+                answer: "O Livro dos Mortos"
+            },
+            {
+                question: "Qual o propósito da riqueza artística nas tumbas egípcias, além de guiar os mortos para a eternidade?",
+                options: [
+                    "Decorar o ambiente para o descanso eterno.",
+                    "Reforçar o poder dos reis e demonstrar sua força e autoridade.",
+                    "Servir como um mapa para o pós-vida.",
+                    "Atrair a atenção de saqueadores."
+                ],
+                answer: "Reforçar o poder dos reis e demonstrar sua força e autoridade."
+            },
+            {
+                question: "Qual tipo de comunicação atual pode nos auxiliar a entender os hieróglifos egípcios?",
+                options: [
+                    "Alfabeto",
+                    "Emojis",
+                    "Sinais de trânsito",
+                    "Linguagem de sinais"
+                ],
+                answer: "Emojis"
+            },
+            {
+                question: "Qual a principal diferença entre hieróglifos e emojis, segundo o texto?",
+                options: [
+                    "Hieróglifos são mais antigos que emojis.",
+                    "Emojis são usados apenas para comunicação digital, hieróglifos não.",
+                    "Hieróglifos expressam um sistema de ideias, emojis expressam principalmente afetividade.",
+                    "Emojis são mais complexos que hieróglifos."
+                ],
+                answer: "Hieróglifos expressam um sistema de ideias, emojis expressam principalmente afetividade."
+            },
+            {
+                question: "Quando a escrita hieroglífica surgiu no Egito Antigo?",
+                options: [
+                    "Por volta de 1000 a.C.",
+                    "Por volta de 3 mil a.C.",
+                    "Por volta de 500 d.C.",
+                    "Por volta de 2000 a.C."
+                ],
+                answer: "Por volta de 3 mil a.C."
+            },
+            {
+                question: "O que foi a Pedra de Roseta, encontrada em 1799?",
+                options: [
+                    "Uma pedra preciosa.",
+                    "Um fragmento de parede com inscrições em três línguas.",
+                    "Uma ferramenta de escrita.",
+                    "Um monumento funerário."
+                ],
+                answer: "Um fragmento de parede com inscrições em três línguas."
+            },
+            {
+                question: "Qual a principal característica da arquitetura e escultura egípcia?",
+                options: [
+                    "Simplicidade e minimalismo",
+                    "Grandiosidade e riqueza",
+                    "Leveza e delicadeza",
+                    "Abstração e simbolismo"
+                ],
+                answer: "Grandiosidade e riqueza"
+            },
+            {
+                question: "Qual o propósito das Pirâmides de Gizé?",
+                options: [
+                    "Servir como templos religiosos.",
+                    "Servir como moradias para os faraós.",
+                    "Servir como túmulos para os faraós Quéops, Quéfren e Miquerinos.",
+                    "Servir como centros de comércio."
+                ],
+                answer: "Servir como túmulos para os faraós Quéops, Quéfren e Miquerinos."
+            },
+            {
+                question: "Qual a altura original da Pirâmide de Quéops?",
+                options: [
+                    "100 metros",
+                    "120 metros",
+                    "146 metros",
+                    "160 metros"
+                ],
+                answer: "146 metros"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = null;
+
+        function initQuiz() {
+            showQuestion();
+            updateProgress();
+        }
+
+        function showQuestion() {
+            const quizContent = document.getElementById('quizContent');
+            const question = quizData[currentQuestion];
+            
+            quizContent.innerHTML = `
+                <div class="question-container active">
+                    <div class="question-number">Pergunta ${currentQuestion + 1} de ${quizData.length}</div>
+                    <div class="question">${question.question}</div>
+                    <div class="options">
+                        ${question.options.map((option, index) => `
+                            <div class="option" onclick="selectOption('${option}', this)">
+                                ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="controls">
+                        <div class="score-display">Pontuação: ${score}/${quizData.length}</div>
+                        <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>
+                            ${currentQuestion === quizData.length - 1 ? 'Ver Resultado' : 'Próxima'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectOption(option, element) {
+            // Remove seleção anterior
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Seleciona a opção atual
+            element.classList.add('selected');
+            selectedAnswer = option;
+            
+            // Habilita o botão próximo
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (selectedAnswer === null) return;
+            
+            const question = quizData[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            // Desabilita todas as opções
+            options.forEach(opt => opt.classList.add('disabled'));
+            
+            // Mostra resposta correta e incorreta
+            options.forEach(opt => {
+                if (opt.textContent.trim() === question.answer) {
+                    opt.classList.add('correct');
+                } else if (opt.textContent.trim() === selectedAnswer && selectedAnswer !== question.answer) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            // Verifica se a resposta está correta
+            if (selectedAnswer === question.answer) {
+                score++;
+            }
+            
+            // Aguarda animação e vai para próxima pergunta
+            setTimeout(() => {
+                currentQuestion++;
+                selectedAnswer = null;
+                
+                if (currentQuestion < quizData.length) {
+                    showQuestion();
+                    updateProgress();
+                } else {
+                    showResults();
+                }
+            }, 1500);
+        }
+
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const percentage = ((currentQuestion) / quizData.length) * 100;
+            progressFill.style.width = percentage + '%';
+        }
+
+        function showResults() {
+            const quizContent = document.getElementById('quizContent');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const finalScore = document.getElementById('finalScore');
+            const percentage = document.getElementById('percentage');
+            const recommendation = document.getElementById('recommendation');
+            
+            quizContent.style.display = 'none';
+            resultsContainer.classList.add('active');
+            
+            const percentageScore = Math.round((score / quizData.length) * 100);
+            
+            finalScore.textContent = `${score}/${quizData.length}`;
+            percentage.textContent = `${percentageScore}%`;
+            
+            // Atualiza barra de progresso para 100%
+            document.getElementById('progressFill').style.width = '100%';
+            
+            // Recomendações baseadas na pontuação
+            let recommendationText = '';
+            let recommendationTitle = '';
+            
+            if (percentageScore >= 80) {
+                recommendationTitle = '🎉 Excelente!';
+                recommendationText = 'Parabéns! Você demonstrou um ótimo conhecimento sobre a arte do Egito Antigo. Continue estudando e explorando mais sobre as civilizações antigas!';
+            } else if (percentageScore >= 60) {
+                recommendationTitle = '👍 Bom trabalho!';
+                recommendationText = 'Você tem um bom conhecimento sobre o assunto, mas ainda pode melhorar. Revise os textos sobre hieróglifos, Lei da Frontalidade e as Pirâmides de Gizé.';
+            } else if (percentageScore >= 40) {
+                recommendationTitle = '📚 Continue estudando!';
+                recommendationText = 'Você precisa revisar mais o conteúdo. Foque especialmente nos temas sobre arte funerária, características da religião egípcia e a monumentalidade da arte egípcia.';
+            } else {
+                recommendationTitle = '💪 Não desista!';
+                recommendationText = 'É importante revisar todo o conteúdo sobre o Egito Antigo. Releia os textos com atenção, prestando atenção aos detalhes sobre hieróglifos, arte monumental e as características da civilização egípcia.';
+            }
+            
+            recommendation.innerHTML = `
+                <h3>${recommendationTitle}</h3>
+                <p>${recommendationText}</p>
+            `;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('resultsContainer').classList.remove('active');
+            
+            initQuiz();
+        }
+
+        // Inicializa o quiz quando a página carrega
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
+
